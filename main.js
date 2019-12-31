@@ -10,6 +10,8 @@ loadEventListeners();
 
 // Load all event listeners
 function loadEventListeners() {
+	// DOM load event
+	document.addEventListener('DOMContentLoaded', getTasks);
 	// Add task event
 	form.addEventListener('submit', addTask);
 	// Remove task event
@@ -43,8 +45,72 @@ function addTask(e) {
 		li.appendChild(link);
 		// Append li to ul
 		taskList.appendChild(li);
+
+		// Store in LS
+		storeTaskInLocalStorage(taskInput.value);
+
 		// Clear input
 		taskInput.value = '';
+	}
+}
+
+// Store task in LS
+function storeTaskInLocalStorage (task) {
+	let tasks;
+
+	if (!localStorage.getItem('tasks')) {
+		tasks = [];
+	} else {
+		tasks = JSON.parse(localStorage.getItem('tasks'));
+	}
+
+	tasks.push(task);
+
+	localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+// Remove task from LS
+function removeTaskFromLocalStorage (taskItem) {
+	let tasks;
+
+	if (!localStorage.getItem('tasks')) {
+		tasks = [];
+	} else {
+		tasks = JSON.parse(localStorage.getItem('tasks'));
+	}
+
+	tasks.forEach(function (task, index) {
+		if (taskItem.textContent === task) {
+			tasks.splice(index, 1);
+		}
+	});
+
+	localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+// Get all tasks from LS
+function getTasks () {
+	if (localStorage.getItem('tasks')) {
+		const tasks = JSON.parse(localStorage.getItem('tasks'));
+
+		tasks.forEach(function (task) {
+			// Create li element
+			const li = document.createElement('li');
+			// Add a class
+			li.className = 'collection-item';
+			// Create text node and append to li
+			li.appendChild(document.createTextNode(task));
+			//Create new link element
+			const link = document.createElement('a');
+			// Add class to the link
+			link.className = 'delete-item secondary-content';
+			// Add icon html
+			link.innerHTML = '<i class="fa fa-remove"></i>';
+			// Append the link to li
+			li.appendChild(link);
+			// Append li to ul
+			taskList.appendChild(li);
+		});
 	}
 }
 
@@ -58,6 +124,9 @@ function removeTask(e) {
 		
 		if (confirm('Are you sure')) {
 			parent.remove();
+			
+			// Remove from LS
+			removeTaskFromLocalStorage(e.target.closest('li'));
 		}
 	}
 }
@@ -72,8 +141,16 @@ function removeTasks () {
 		// });
 		while(taskList.firstChild) {
 			taskList.removeChild(taskList.firstChild);
+
+			// Remove from LS
+			clearTasksFromLocalStorage();
 		}
 	}
+}
+
+// Clear tasks from LS
+function clearTasksFromLocalStorage() {
+	localStorage.clear();
 }
 
 // Filter tasks
